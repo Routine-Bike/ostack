@@ -1,8 +1,8 @@
 .env
 node_modules/
 browse/dist/
-bin/gstack-global-discover
-.gstack/
+bin/ostack-global-discover
+.ostack/
 .claude/skills/
 .agents/
 .context/

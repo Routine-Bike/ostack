@@ -63,7 +63,7 @@ If the Eng Review is NOT "CLEAR":
 1. **Check for a prior override on this branch:**
    ```bash
    {{SLUG_EVAL}}
-   grep '"skill":"ship-review-override"' ~/.gstack/projects/$SLUG/$BRANCH-reviews.jsonl 2>/dev/null || echo "NO_OVERRIDE"
+   grep '"skill":"ship-review-override"' ~/.ostack/projects/$SLUG/$BRANCH-reviews.jsonl 2>/dev/null || echo "NO_OVERRIDE"
    ```
    If an override exists, display the dashboard and note "Review gate previously accepted — continuing." Do NOT ask again.
 
@@ -72,12 +72,12 @@ If the Eng Review is NOT "CLEAR":
    - RECOMMENDATION: Choose C if the change is obviously trivial (< 20 lines, typo fix, config-only); Choose B for larger changes
    - Options: A) Ship anyway  B) Abort — run /plan-eng-review first  C) Change is too small to need eng review
    - If CEO Review is missing, mention as informational ("CEO Review not run — recommended for product changes") but do NOT block
-   - For Design Review: run `source <(~/.claude/skills/gstack/bin/gstack-diff-scope <base> 2>/dev/null)`. If `SCOPE_FRONTEND=true` and no design review (plan-design-review or design-review-lite) exists in the dashboard, mention: "Design Review not run — this PR changes frontend code. The lite design check will run automatically in Step 3.5, but consider running /design-review for a full visual audit post-implementation." Still never block.
+   - For Design Review: run `source <(~/.claude/skills/ostack/bin/ostack-diff-scope <base> 2>/dev/null)`. If `SCOPE_FRONTEND=true` and no design review (plan-design-review or design-review-lite) exists in the dashboard, mention: "Design Review not run — this PR changes frontend code. The lite design check will run automatically in Step 3.5, but consider running /design-review for a full visual audit post-implementation." Still never block.
 
 3. **If the user chooses A or C,** persist the decision so future `/ship` runs on this branch skip the gate:
    ```bash
    {{SLUG_EVAL}}
-   echo '{"skill":"ship-review-override","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","decision":"USER_CHOICE"}' >> ~/.gstack/projects/$SLUG/$BRANCH-reviews.jsonl
+   echo '{"skill":"ship-review-override","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","decision":"USER_CHOICE"}' >> ~/.ostack/projects/$SLUG/$BRANCH-reviews.jsonl
    ```
    Substitute USER_CHOICE with "ship_anyway" or "not_relevant".
 
@@ -328,7 +328,7 @@ Read `.claude/skills/review/TODOS-format.md` for the canonical format reference.
 **1. Check if TODOS.md exists** in the repository root.
 
 **If TODOS.md does not exist:** Use AskUserQuestion:
-- Message: "GStack recommends maintaining a TODOS.md organized by skill/component, then priority (P0 at top through P4, then Completed at bottom). See TODOS-format.md for the full format. Would you like to create one?"
+- Message: "OStack recommends maintaining a TODOS.md organized by skill/component, then priority (P0 at top through P4, then Completed at bottom). See TODOS-format.md for the full format. Would you like to create one?"
 - Options: A) Create it now, B) Skip for now
 - If A: Create `TODOS.md` with a skeleton (# TODOS heading + ## Completed section). Continue to step 3.
 - If B: Skip the rest of Step 5.5. Continue to Step 6.
@@ -431,6 +431,18 @@ Before pushing, re-verify if code changed during Steps 4-6:
 **If tests fail here:** STOP. Do not push. Fix the issue and return to Step 3.
 
 Claiming work is complete without verification is dishonesty, not efficiency.
+
+---
+
+## Pre-Merge Quality Gates
+
+Before creating or merging the PR, verify ALL of these. No exceptions.
+
+1. **Zero warnings** — No compiler warnings, no linter warnings, no deprecation notices in changed files.
+2. **Zero TODO/FIXME in changed files** — If it's not done, it's not ready to ship. Move it to TODOS.md or fix it.
+3. **Test coverage delta must be positive** — The PR must add more test coverage than it removes. New code without tests is incomplete code.
+4. **No console.log/print debugging left** — Search changed files for debugging artifacts.
+5. **AI-generated code reviewed** — Every function written by AI has been read by a human (you) and verified against the shadow path analysis from /review.
 
 ---
 

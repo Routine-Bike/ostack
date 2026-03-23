@@ -70,7 +70,7 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
   'plan-eng-review-artifact':  ['plan-eng-review/**'],
 
   // Ship
-  'ship-base-branch': ['ship/**', 'bin/gstack-repo-mode'],
+  'ship-base-branch': ['ship/**', 'bin/ostack-repo-mode'],
   'ship-local-workflow': ['ship/**', 'scripts/gen-skill-docs.ts'],
 
   // Setup browser cookies
@@ -81,7 +81,7 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
   'retro-base-branch': ['retro/**'],
 
   // Global discover
-  'global-discover':   ['bin/gstack-global-discover.ts', 'test/global-discover.test.ts'],
+  'global-discover':   ['bin/ostack-global-discover.ts', 'test/global-discover.test.ts'],
 
   // Document-release
   'document-release': ['document-release/**'],
@@ -91,18 +91,18 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
 
   // Codex E2E (tests skills via Codex CLI)
   'codex-discover-skill':  ['codex/**', '.agents/skills/**', 'test/helpers/codex-session-runner.ts'],
-  'codex-review-findings': ['review/**', '.agents/skills/gstack-review/**', 'codex/**', 'test/helpers/codex-session-runner.ts'],
+  'codex-review-findings': ['review/**', '.agents/skills/ostack-review/**', 'codex/**', 'test/helpers/codex-session-runner.ts'],
 
   // Gemini E2E (tests skills via Gemini CLI)
   'gemini-discover-skill':  ['.agents/skills/**', 'test/helpers/gemini-session-runner.ts'],
-  'gemini-review-findings': ['review/**', '.agents/skills/gstack-review/**', 'test/helpers/gemini-session-runner.ts'],
+  'gemini-review-findings': ['review/**', '.agents/skills/ostack-review/**', 'test/helpers/gemini-session-runner.ts'],
 
 
   // Coverage audit (shared fixture) + triage
-  'ship-coverage-audit': ['ship/**', 'test/fixtures/coverage-audit-fixture.ts', 'bin/gstack-repo-mode'],
+  'ship-coverage-audit': ['ship/**', 'test/fixtures/coverage-audit-fixture.ts', 'bin/ostack-repo-mode'],
   'review-coverage-audit': ['review/**', 'test/fixtures/coverage-audit-fixture.ts'],
   'plan-eng-coverage-audit': ['plan-eng-review/**', 'test/fixtures/coverage-audit-fixture.ts'],
-  'ship-triage': ['ship/**', 'bin/gstack-repo-mode'],
+  'ship-triage': ['ship/**', 'bin/ostack-repo-mode'],
 
   // Design
   'design-consultation-core':       ['design-consultation/**', 'scripts/gen-skill-docs.ts'],
@@ -113,8 +113,8 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
   'plan-design-review-no-ui-scope': ['plan-design-review/**', 'scripts/gen-skill-docs.ts'],
   'design-review-fix':              ['design-review/**', 'browse/src/**', 'scripts/gen-skill-docs.ts'],
 
-  // gstack-upgrade
-  'gstack-upgrade-happy-path': ['gstack-upgrade/**'],
+  // ostack-upgrade
+  'ostack-upgrade-happy-path': ['ostack-upgrade/**'],
 
   // Deploy skills
   'land-and-deploy-workflow':   ['land-and-deploy/**', 'scripts/gen-skill-docs.ts'],
@@ -180,7 +180,7 @@ export const LLM_JUDGE_TOUCHFILES: Record<string, string[]> = {
   // Other skills
   'retro/SKILL.md instructions':          ['retro/SKILL.md', 'retro/SKILL.md.tmpl'],
   'qa-only/SKILL.md workflow':            ['qa-only/SKILL.md', 'qa-only/SKILL.md.tmpl'],
-  'gstack-upgrade/SKILL.md upgrade flow': ['gstack-upgrade/SKILL.md', 'gstack-upgrade/SKILL.md.tmpl'],
+  'ostack-upgrade/SKILL.md upgrade flow': ['ostack-upgrade/SKILL.md', 'ostack-upgrade/SKILL.md.tmpl'],
 };
 
 /**

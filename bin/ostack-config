@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
-# gstack-config — read/write ~/.gstack/config.yaml
+# ostack-config — read/write ~/.ostack/config.yaml
 #
 # Usage:
-#   gstack-config get <key>          — read a config value
-#   gstack-config set <key> <value>  — write a config value
-#   gstack-config list               — show all config
+#   ostack-config get <key>          — read a config value
+#   ostack-config set <key> <value>  — write a config value
+#   ostack-config list               — show all config
 #
 # Env overrides (for testing):
-#   GSTACK_STATE_DIR  — override ~/.gstack state directory
+#   OSTACK_STATE_DIR  — override ~/.ostack state directory
 set -euo pipefail
 
-STATE_DIR="${GSTACK_STATE_DIR:-$HOME/.gstack}"
+STATE_DIR="${OSTACK_STATE_DIR:-$HOME/.ostack}"
 CONFIG_FILE="$STATE_DIR/config.yaml"
 
 case "${1:-}" in
   get)
-    KEY="${2:?Usage: gstack-config get <key>}"
+    KEY="${2:?Usage: ostack-config get <key>}"
     grep -E "^${KEY}:" "$CONFIG_FILE" 2>/dev/null | tail -1 | awk '{print $2}' | tr -d '[:space:]' || true
     ;;
   set)
-    KEY="${2:?Usage: gstack-config set <key> <value>}"
-    VALUE="${3:?Usage: gstack-config set <key> <value>}"
+    KEY="${2:?Usage: ostack-config set <key> <value>}"
+    VALUE="${3:?Usage: ostack-config set <key> <value>}"
     mkdir -p "$STATE_DIR"
     if grep -qE "^${KEY}:" "$CONFIG_FILE" 2>/dev/null; then
       sed -i '' "s/^${KEY}:.*/${KEY}: ${VALUE}/" "$CONFIG_FILE"
@@ -32,7 +32,7 @@ case "${1:-}" in
     cat "$CONFIG_FILE" 2>/dev/null || true
     ;;
   *)
-    echo "Usage: gstack-config {get|set|list} [key] [value]"
+    echo "Usage: ostack-config {get|set|list} [key] [value]"
     exit 1
     ;;
 esac

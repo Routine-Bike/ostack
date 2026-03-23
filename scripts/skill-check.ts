@@ -29,7 +29,7 @@ const SKILL_FILES = [
   'setup-browser-cookies/SKILL.md',
   'plan-design-review/SKILL.md',
   'design-review/SKILL.md',
-  'gstack-upgrade/SKILL.md',
+  'ostack-upgrade/SKILL.md',
   'document-release/SKILL.md',
   'canary/SKILL.md',
   'benchmark/SKILL.md',

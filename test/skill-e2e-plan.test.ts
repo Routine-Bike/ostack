@@ -339,7 +339,7 @@ export function main() { return Dashboard(); }
     setupBrowseShims(planDir);
 
     // Create project directory for artifacts
-    projectDir = path.join(os.homedir(), '.gstack', 'projects', 'test-project');
+    projectDir = path.join(os.homedir(), '.ostack', 'projects', 'test-project');
     fs.mkdirSync(projectDir, { recursive: true });
 
     // Clean up stale test-plan files from previous runs
@@ -364,7 +364,7 @@ export function main() { return Dashboard(); }
     } catch {}
   });
 
-  test('/plan-eng-review writes test-plan artifact to ~/.gstack/projects/', async () => {
+  test('/plan-eng-review writes test-plan artifact to ~/.ostack/projects/', async () => {
     // Count existing test-plan files before
     const beforeFiles = fs.readdirSync(projectDir).filter(f => f.includes('test-plan'));
 

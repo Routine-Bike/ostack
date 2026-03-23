@@ -181,6 +181,18 @@ COMPONENT: [Name]
   Elevation of Privilege: Can a user gain unauthorized access?
 ```
 
+### Phase 3.5: Mandatory Threat Model
+
+Every new endpoint, every new data flow, every new user-facing feature requires a threat model. Not optional. Not deferred. Not "we'll add security later."
+
+For each new endpoint or flow:
+1. **Authentication** — Who can access this? What happens if the auth token is expired/missing/forged?
+2. **Authorization** — Can user A access user B's data by changing an ID? Test it.
+3. **Input validation** — What happens with malicious input? SQL injection, XSS, path traversal, command injection — check all four.
+4. **Rate limiting** — Can this endpoint be abused? What's the cost of 10,000 requests in 10 seconds?
+5. **Data exposure** — Does the response leak sensitive fields? Check every JSON response for PII, internal IDs, or debug info.
+6. **Dependency risk** — New package added? Check its maintenance status, known CVEs, and permission scope.
+
 ### Phase 4: Data Classification
 
 Classify all data handled by the application:
@@ -334,10 +346,10 @@ For the top 5 findings, present via AskUserQuestion:
 ### Phase 8: Save Report
 
 ```bash
-mkdir -p .gstack/security-reports
+mkdir -p .ostack/security-reports
 ```
 
-Write findings to `.gstack/security-reports/{date}.json`. Include:
+Write findings to `.ostack/security-reports/{date}.json`. Include:
 - Each finding with severity, confidence, category, file, line, description
 - Verification status (independently verified or self-verified)
 - Total findings by severity tier

@@ -61,6 +61,20 @@ function makeResult(overrides?: Partial<EvalResult>): EvalResult {
 // --- EvalCollector tests ---
 
 describe('EvalCollector', () => {
+  // Suppress EvalCollector stdout/stderr during finalize tests
+  let origWrite: typeof process.stderr.write;
+  let origStdout: typeof process.stdout.write;
+  beforeEach(() => {
+    origWrite = process.stderr.write;
+    origStdout = process.stdout.write;
+    process.stderr.write = (() => true) as any;
+    process.stdout.write = (() => true) as any;
+  });
+  afterEach(() => {
+    process.stderr.write = origWrite;
+    process.stdout.write = origStdout;
+  });
+
   test('addTest accumulates entries', () => {
     const collector = new EvalCollector('e2e', tmpDir);
     collector.addTest(makeEntry({ name: 'a' }));

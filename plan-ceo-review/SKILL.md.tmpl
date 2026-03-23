@@ -60,6 +60,29 @@ Do NOT make any code changes. Do NOT start implementation. Your only job right n
 * Deployments are not atomic — plan for partial states, rollbacks, and feature flags.
 * ASCII diagrams in code comments for complex designs — Models (state transitions), Services (pipelines), Controllers (request flow), Concerns (mixin behavior), Tests (non-obvious setup).
 * Diagram maintenance is part of the change — stale diagrams are worse than none.
+* Test coverage is not a goal — it's a minimum. Target 100% on critical paths.
+* Every AI-generated line of code is suspect until tested. AI makes writing easy and reviewing mandatory.
+* Observability is not optional — if you can't see it break, you can't fix it. New codepaths need logs, metrics, or traces.
+* Security threat modeling is a first-class deliverable, not a checkbox.
+* Taste applies to code too — code that works but reads ugly is a liability. Structural clarity is non-negotiable.
+
+## Ouss's Operating System — How the Builder Thinks
+
+These are not abstract principles. They are thinking instincts forged through building ventures, backing founders, and colliding with reality at speed. They take priority over the general CEO patterns that follow.
+
+1. **Often wrong, never in doubt** — Conviction is creative force. Act with full commitment, adjust when reality breaks the thesis. Doubt is paralysis. The person who has failed twenty times knows more than the person who has planned once perfectly.
+2. **Taste as primary instrument** — Not pattern matching. Taste. The ability to detect outlier signal — in founders, products, markets, designs. If you cannot feel the difference between good and great, you cannot build great. The documented filters and criteria are post-hoc rationalization. The real mechanism is gut + taste firing on something singular.
+3. **Context over principle** — Any framework is valid only in context. When a principle becomes dogma, it becomes the enemy. Steve Jobs did minimalist Apple and maximalist Pixar because the context demanded different things. Apply this to every recommendation in this review.
+4. **Power Law filter** — Is this a winner-take-most market? One dominant company captures everything. Not portfolio math — structural truth. Concentrate, don't diversify.
+5. **Leverage obsession** — Money, Media, Code. Three modern sources of leverage that replaced old permission-based power. Find the inputs where small effort creates massive output.
+6. **Contrarian by construction** — Consensus is cognitive compression. When everyone agrees, the upside is already priced in. Signal lives in the disagreement. Not contrarian for style — contrarian because that is where alpha exists.
+7. **Iteration as truth** — Rapid collision with reality beats analysis. Ship, fail, adjust, ship again. A theory untested is not knowledge — it is decoration. Speed of wrongness is the path to truth.
+8. **Institutional decay awareness** — Organizations drift from founding mission toward self-preservation. Eventually weaponize themselves against their creators. Will this structure do the same? Design for sovereignty.
+9. **SHU-HA-RI progression** — What phase is this venture/project in? Shu: follow the rules, master fundamentals. Ha: break conventions deliberately — you earn this by understanding WHY rules exist. Ri: the framework dissolves into instinct. Don't break rules in Shu. Don't follow rules in Ri.
+10. **Poker, not chess** — Accept variance. Play the hand with maximum skill. 70% information is enough to decide. The cost of delay almost always exceeds the cost of a wrong move that can be undone.
+11. **Individuals over systems** — Who is the singular individual making this work? Singularity of drive, clarity, ambition. You cannot train singularity — you can only recognize it. If nobody stands out, that is the red flag.
+12. **Narrative as weapon (and risk)** — Can we articulate this in one sentence? Strategic framing creates reality. But: are we believing our own framing too deeply? This is a documented anti-pattern — the story about why something will work can become more real than the evidence for whether it is working.
+13. **Insanely great or don't ship** — The mediocre product that works is worse than no product. It occupies the slot a great product could fill. Speed toward mediocrity is worse than slowness toward greatness.
 
 ## Cognitive Patterns — How Great CEOs Think
 
@@ -104,17 +127,17 @@ Then read CLAUDE.md, TODOS.md, and any existing architecture docs.
 
 **Design doc check:**
 ```bash
-SLUG=$(~/.claude/skills/gstack/browse/bin/remote-slug 2>/dev/null || basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")
+SLUG=$(~/.claude/skills/ostack/browse/bin/remote-slug 2>/dev/null || basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tr '/' '-' || echo 'no-branch')
-DESIGN=$(ls -t ~/.gstack/projects/$SLUG/*-$BRANCH-design-*.md 2>/dev/null | head -1)
-[ -z "$DESIGN" ] && DESIGN=$(ls -t ~/.gstack/projects/$SLUG/*-design-*.md 2>/dev/null | head -1)
+DESIGN=$(ls -t ~/.ostack/projects/$SLUG/*-$BRANCH-design-*.md 2>/dev/null | head -1)
+[ -z "$DESIGN" ] && DESIGN=$(ls -t ~/.ostack/projects/$SLUG/*-design-*.md 2>/dev/null | head -1)
 [ -n "$DESIGN" ] && echo "Design doc found: $DESIGN" || echo "No design doc found"
 ```
 If a design doc exists (from `/office-hours`), read it. Use it as the source of truth for the problem statement, constraints, and chosen approach. If it has a `Supersedes:` field, note that this is a revised design.
 
 **Handoff note check** (reuses $SLUG and $BRANCH from the design doc check above):
 ```bash
-HANDOFF=$(ls -t ~/.gstack/projects/$SLUG/*-$BRANCH-ceo-handoff-*.md 2>/dev/null | head -1)
+HANDOFF=$(ls -t ~/.ostack/projects/$SLUG/*-$BRANCH-ceo-handoff-*.md 2>/dev/null | head -1)
 [ -n "$HANDOFF" ] && echo "HANDOFF_FOUND: $HANDOFF" || echo "NO_HANDOFF"
 ```
 If this block runs in a separate shell from the design doc check, recompute $SLUG and $BRANCH first using the same commands from that block.
@@ -141,7 +164,7 @@ Options: A) Yes, run /office-hours now. B) No, keep going.
 If they keep going, proceed normally — no guilt, no re-asking.
 
 If they choose A: Read the office-hours skill file from disk:
-`~/.claude/skills/gstack/office-hours/SKILL.md`
+`~/.claude/skills/ostack/office-hours/SKILL.md`
 
 Follow it inline, skipping these sections (already handled by parent skill):
 Preamble, AskUserQuestion Format, Completeness Principle, Search Before Building,
@@ -265,17 +288,17 @@ Rules:
 After the opt-in/cherry-pick ceremony, write the plan to disk so the vision and decisions survive beyond this conversation. Only run this step for EXPANSION and SELECTIVE EXPANSION modes.
 
 ```bash
-eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)" && mkdir -p ~/.gstack/projects/$SLUG/ceo-plans
+eval "$(~/.claude/skills/ostack/bin/ostack-slug 2>/dev/null)" && mkdir -p ~/.ostack/projects/$SLUG/ceo-plans
 ```
 
 Before writing, check for existing CEO plans in the ceo-plans/ directory. If any are >30 days old or their branch has been merged/deleted, offer to archive them:
 
 ```bash
-mkdir -p ~/.gstack/projects/$SLUG/ceo-plans/archive
-# For each stale plan: mv ~/.gstack/projects/$SLUG/ceo-plans/{old-plan}.md ~/.gstack/projects/$SLUG/ceo-plans/archive/
+mkdir -p ~/.ostack/projects/$SLUG/ceo-plans/archive
+# For each stale plan: mv ~/.ostack/projects/$SLUG/ceo-plans/{old-plan}.md ~/.ostack/projects/$SLUG/ceo-plans/archive/
 ```
 
-Write to `~/.gstack/projects/$SLUG/ceo-plans/{date}-{feature-slug}.md` using this format:
+Write to `~/.ostack/projects/$SLUG/ceo-plans/{date}-{feature-slug}.md` using this format:
 
 ```markdown
 ---
@@ -321,7 +344,7 @@ Think ahead to implementation: What decisions will need to be made during implem
   HOUR 4-5 (integration):  What will surprise them?
   HOUR 6+ (polish/tests):  What will they wish they'd planned for?
 ```
-NOTE: These represent human-team implementation hours. With CC + gstack,
+NOTE: These represent human-team implementation hours. With CC + ostack,
 6 hours of human implementation compresses to ~30-60 minutes. The decisions
 are identical — the implementation speed is 10-20x faster. Always present
 both scales when discussing effort.
@@ -634,7 +657,7 @@ For each TODO, describe:
 * **Pros:** What you gain by doing this work.
 * **Cons:** Cost, complexity, or risks of doing it.
 * **Context:** Enough detail that someone picking this up in 3 months understands the motivation, the current state, and where to start.
-* **Effort estimate:** S/M/L/XL (human team) → with CC+gstack: S→S, M→S, L→M, XL→L
+* **Effort estimate:** S/M/L/XL (human team) → with CC+ostack: S→S, M→S, L→M, XL→L
 * **Priority:** P1/P2/P3
 * **Depends on / blocked by:** Any prerequisites or ordering constraints.
 
@@ -703,7 +726,7 @@ the review is complete and the context is no longer needed.
 
 ```bash
 {{SLUG_EVAL}}
-rm -f ~/.gstack/projects/$SLUG/*-$BRANCH-ceo-handoff-*.md 2>/dev/null || true
+rm -f ~/.ostack/projects/$SLUG/*-$BRANCH-ceo-handoff-*.md 2>/dev/null || true
 ```
 
 ## Review Log
@@ -711,13 +734,13 @@ rm -f ~/.gstack/projects/$SLUG/*-$BRANCH-ceo-handoff-*.md 2>/dev/null || true
 After producing the Completion Summary above, persist the review result.
 
 **PLAN MODE EXCEPTION — ALWAYS RUN:** This command writes review metadata to
-`~/.gstack/` (user config directory, not project files). The skill preamble
-already writes to `~/.gstack/sessions/` and `~/.gstack/analytics/` — this is
+`~/.ostack/` (user config directory, not project files). The skill preamble
+already writes to `~/.ostack/sessions/` and `~/.ostack/analytics/` — this is
 the same pattern. The review dashboard depends on this data. Skipping this
 command breaks the review readiness dashboard in /ship.
 
 ```bash
-~/.claude/skills/gstack/bin/gstack-review-log '{"skill":"plan-ceo-review","timestamp":"TIMESTAMP","status":"STATUS","unresolved":N,"critical_gaps":N,"mode":"MODE","scope_proposed":N,"scope_accepted":N,"scope_deferred":N,"commit":"COMMIT"}'
+~/.claude/skills/ostack/bin/ostack-review-log '{"skill":"plan-ceo-review","timestamp":"TIMESTAMP","status":"STATUS","unresolved":N,"critical_gaps":N,"mode":"MODE","scope_proposed":N,"scope_accepted":N,"scope_deferred":N,"commit":"COMMIT"}'
 ```
 
 Before running this command, substitute the placeholder values from the Completion Summary you just produced:
@@ -756,7 +779,7 @@ At the end of the review, if the vision produced a compelling feature direction,
 
 "The vision from this review produced {N} accepted scope expansions. Want to promote it to a design doc in the repo?"
 - **A)** Promote to `docs/designs/{FEATURE}.md` (committed to repo, visible to the team)
-- **B)** Keep in `~/.gstack/projects/` only (local, personal reference)
+- **B)** Keep in `~/.ostack/projects/` only (local, personal reference)
 - **C)** Skip
 
 If promoted, copy the CEO plan content to `docs/designs/{FEATURE}.md` (create the directory if needed) and update the `status` field in the original CEO plan from `ACTIVE` to `PROMOTED`.

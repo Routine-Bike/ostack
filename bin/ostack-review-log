@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# ostack-review-log — atomically log a review result
+# Usage: ostack-review-log '{"skill":"...","timestamp":"...","status":"..."}'
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+eval "$("$SCRIPT_DIR/ostack-slug" 2>/dev/null)"
+OSTACK_HOME="${OSTACK_HOME:-$HOME/.ostack}"
+mkdir -p "$OSTACK_HOME/projects/$SLUG"
+echo "$1" >> "$OSTACK_HOME/projects/$SLUG/$BRANCH-reviews.jsonl"

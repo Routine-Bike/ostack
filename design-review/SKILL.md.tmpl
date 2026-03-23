@@ -74,7 +74,7 @@ After the user chooses, execute their choice (commit or stash), then continue wi
 **Create output directories:**
 
 ```bash
-REPORT_DIR=".gstack/design-reports"
+REPORT_DIR=".ostack/design-reports"
 mkdir -p "$REPORT_DIR/screenshots"
 ```
 
@@ -93,7 +93,7 @@ Record baseline design score and AI slop score at end of Phase 6.
 ## Output Structure
 
 ```
-.gstack/design-reports/
+.ostack/design-reports/
 ├── design-audit-{domain}-{YYYY-MM-DD}.md    # Structured report
 ├── screenshots/
 │   ├── first-impression.png                  # Phase 1
@@ -220,13 +220,13 @@ After all fixes are applied:
 
 Write the report to both local and project-scoped locations:
 
-**Local:** `.gstack/design-reports/design-audit-{domain}-{YYYY-MM-DD}.md`
+**Local:** `.ostack/design-reports/design-audit-{domain}-{YYYY-MM-DD}.md`
 
 **Project-scoped:**
 ```bash
 {{SLUG_SETUP}}
 ```
-Write to `~/.gstack/projects/{slug}/{user}-{branch}-design-audit-{datetime}.md`
+Write to `~/.ostack/projects/{slug}/{user}-{branch}-design-audit-{datetime}.md`
 
 **Per-finding additions** (beyond standard design audit report):
 - Fix Status: verified / best-effort / reverted / deferred

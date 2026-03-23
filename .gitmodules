@@ -1,0 +1,3 @@
+[submodule "obrain"]
+	path = obrain
+	url = https://github.com/mr-daedalium/core-ouss.git

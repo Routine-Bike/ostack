@@ -1,32 +1,32 @@
 #!/usr/bin/env bash
-# gstack-community-dashboard — community usage stats from Supabase
+# ostack-community-dashboard — community usage stats from Supabase
 #
-# Queries the Supabase REST API to show community-wide gstack usage:
+# Queries the Supabase REST API to show community-wide ostack usage:
 # skill popularity, crash clusters, version distribution, retention.
 #
 # Env overrides (for testing):
-#   GSTACK_DIR                    — override auto-detected gstack root
-#   GSTACK_SUPABASE_URL           — override Supabase project URL
-#   GSTACK_SUPABASE_ANON_KEY      — override Supabase anon key
+#   OSTACK_DIR                    — override auto-detected ostack root
+#   OSTACK_SUPABASE_URL           — override Supabase project URL
+#   OSTACK_SUPABASE_ANON_KEY      — override Supabase anon key
 set -uo pipefail
 
-GSTACK_DIR="${GSTACK_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+OSTACK_DIR="${OSTACK_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 
 # Source Supabase config if not overridden by env
-if [ -z "${GSTACK_SUPABASE_URL:-}" ] && [ -f "$GSTACK_DIR/supabase/config.sh" ]; then
-  . "$GSTACK_DIR/supabase/config.sh"
+if [ -z "${OSTACK_SUPABASE_URL:-}" ] && [ -f "$OSTACK_DIR/supabase/config.sh" ]; then
+  . "$OSTACK_DIR/supabase/config.sh"
 fi
-SUPABASE_URL="${GSTACK_SUPABASE_URL:-}"
-ANON_KEY="${GSTACK_SUPABASE_ANON_KEY:-}"
+SUPABASE_URL="${OSTACK_SUPABASE_URL:-}"
+ANON_KEY="${OSTACK_SUPABASE_ANON_KEY:-}"
 
 if [ -z "$SUPABASE_URL" ] || [ -z "$ANON_KEY" ]; then
-  echo "gstack community dashboard"
+  echo "ostack community dashboard"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo ""
   echo "Supabase not configured yet. The community dashboard will be"
-  echo "available once the gstack Supabase project is set up."
+  echo "available once the ostack Supabase project is set up."
   echo ""
-  echo "For local analytics, run: gstack-analytics"
+  echo "For local analytics, run: ostack-analytics"
   exit 0
 fi
 
@@ -41,7 +41,7 @@ query() {
     2>/dev/null || echo "[]"
 }
 
-echo "gstack community dashboard"
+echo "ostack community dashboard"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
@@ -70,7 +70,7 @@ echo "Top skills (last 7 days)"
 echo "────────────────────────"
 
 # Query telemetry_events, group by skill
-EVENTS="$(query "telemetry_events" "select=skill,gstack_version&event_type=eq.skill_run&event_timestamp=gte.${WEEK_AGO}&limit=1000" 2>/dev/null || echo "[]")"
+EVENTS="$(query "telemetry_events" "select=skill,ostack_version&event_type=eq.skill_run&event_timestamp=gte.${WEEK_AGO}&limit=1000" 2>/dev/null || echo "[]")"
 
 if [ "$EVENTS" != "[]" ] && [ -n "$EVENTS" ]; then
   echo "$EVENTS" | grep -o '"skill":"[^"]*"' | awk -F'"' '{print $4}' | sort | uniq -c | sort -rn | head -10 | while read -r COUNT SKILL; do
@@ -85,7 +85,7 @@ echo ""
 echo "Top crash clusters"
 echo "──────────────────"
 
-CRASHES="$(query "crash_clusters" "select=error_class,gstack_version,total_occurrences,identified_users&limit=5" 2>/dev/null || echo "[]")"
+CRASHES="$(query "crash_clusters" "select=error_class,ostack_version,total_occurrences,identified_users&limit=5" 2>/dev/null || echo "[]")"
 
 if [ "$CRASHES" != "[]" ] && [ -n "$CRASHES" ]; then
   echo "$CRASHES" | grep -o '"error_class":"[^"]*"' | awk -F'"' '{print $4}' | head -5 | while read -r ERR; do
@@ -102,7 +102,7 @@ echo "Version distribution (last 7 days)"
 echo "───────────────────────────────────"
 
 if [ "$EVENTS" != "[]" ] && [ -n "$EVENTS" ]; then
-  echo "$EVENTS" | grep -o '"gstack_version":"[^"]*"' | awk -F'"' '{print $4}' | sort | uniq -c | sort -rn | head -5 | while read -r COUNT VER; do
+  echo "$EVENTS" | grep -o '"ostack_version":"[^"]*"' | awk -F'"' '{print $4}' | sort | uniq -c | sort -rn | head -5 | while read -r COUNT VER; do
     printf "  v%-15s %d events\n" "$VER" "$COUNT"
   done
 else
@@ -110,4 +110,4 @@ else
 fi
 
 echo ""
-echo "For local analytics: gstack-analytics"
+echo "For local analytics: ostack-analytics"

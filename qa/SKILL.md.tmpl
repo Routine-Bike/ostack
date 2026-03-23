@@ -37,8 +37,8 @@ You are a QA engineer AND a bug-fix engineer. Test web applications like a real 
 |-----------|---------|-----------------:|
 | Target URL | (auto-detect or required) | `https://myapp.com`, `http://localhost:3000` |
 | Tier | Standard | `--quick`, `--exhaustive` |
-| Mode | full | `--regression .gstack/qa-reports/baseline.json` |
-| Output dir | `.gstack/qa-reports/` | `Output to /tmp/qa` |
+| Mode | full | `--regression .ostack/qa-reports/baseline.json` |
+| Output dir | `.ostack/qa-reports/` | `Output to /tmp/qa` |
 | Scope | Full app (or diff-scoped) | `Focus on the billing page` |
 | Auth | None | `Sign in to user@example.com`, `Import cookies from cookies.json` |
 
@@ -78,7 +78,7 @@ After the user chooses, execute their choice (commit or stash), then continue wi
 **Create output directories:**
 
 ```bash
-mkdir -p .gstack/qa-reports/screenshots
+mkdir -p .ostack/qa-reports/screenshots
 ```
 
 ---
@@ -87,10 +87,10 @@ mkdir -p .gstack/qa-reports/screenshots
 
 Before falling back to git diff heuristics, check for richer test plan sources:
 
-1. **Project-scoped test plans:** Check `~/.gstack/projects/` for recent `*-test-plan-*.md` files for this repo
+1. **Project-scoped test plans:** Check `~/.ostack/projects/` for recent `*-test-plan-*.md` files for this repo
    ```bash
    {{SLUG_EVAL}}
-   ls -t ~/.gstack/projects/$SLUG/*-test-plan-*.md 2>/dev/null | head -1
+   ls -t ~/.ostack/projects/$SLUG/*-test-plan-*.md 2>/dev/null | head -1
    ```
 2. **Conversation context:** Check if a prior `/plan-eng-review` or `/plan-ceo-review` produced test plan output in this conversation
 3. **Use whichever source is richer.** Fall back to git diff analysis only if neither is available.
@@ -108,7 +108,7 @@ Record baseline health score at end of Phase 6.
 ## Output Structure
 
 ```
-.gstack/qa-reports/
+.ostack/qa-reports/
 ├── qa-report-{domain}-{YYYY-MM-DD}.md    # Structured report
 ├── screenshots/
 │   ├── initial.png                        # Landing page annotated screenshot
@@ -133,6 +133,20 @@ Sort all discovered issues by severity, then decide which to fix based on the se
 - **Exhaustive:** Fix all, including cosmetic/low severity.
 
 Mark issues that cannot be fixed from source code (e.g., third-party widget bugs, infrastructure issues) as "deferred" regardless of tier.
+
+---
+
+### Adversarial Mode
+
+Not just "does it work?" but "what would make it fail?" After completing the standard QA pass, switch to adversarial mode:
+
+1. **Input abuse** — Enter the longest possible string. Paste emoji. Submit empty forms. Use special characters in every field. Upload a 0-byte file and a 100MB file.
+2. **State manipulation** — Open the same page in two tabs. Submit a form, then hit back. Refresh during a loading state. Close the browser mid-transaction.
+3. **Permission probing** — Access pages you shouldn't. Modify request payloads. Change IDs in URLs to access other users' data.
+4. **Performance stress** — Click the submit button 10 times rapidly. Navigate away and back during an async operation. Test on a throttled connection.
+5. **Failure recovery** — Kill the server mid-request. Disconnect the network. Let a session expire mid-flow. What does the user see?
+
+Report adversarial findings separately with severity: CRITICAL (data loss, security breach), HIGH (broken flow, stuck state), MEDIUM (poor UX under stress), LOW (cosmetic under edge conditions).
 
 ---
 
@@ -213,7 +227,7 @@ The test MUST:
   ```
   // Regression: ISSUE-NNN — {what broke}
   // Found by /qa on {YYYY-MM-DD}
-  // Report: .gstack/qa-reports/qa-report-{domain}-{date}.md
+  // Report: .ostack/qa-reports/qa-report-{domain}-{date}.md
   ```
 
 Test type decision:
@@ -273,13 +287,13 @@ After all fixes are applied:
 
 Write the report to both local and project-scoped locations:
 
-**Local:** `.gstack/qa-reports/qa-report-{domain}-{YYYY-MM-DD}.md`
+**Local:** `.ostack/qa-reports/qa-report-{domain}-{YYYY-MM-DD}.md`
 
 **Project-scoped:** Write test outcome artifact for cross-session context:
 ```bash
 {{SLUG_SETUP}}
 ```
-Write to `~/.gstack/projects/{slug}/{user}-{branch}-test-outcome-{datetime}.md`
+Write to `~/.ostack/projects/{slug}/{user}-{branch}-test-outcome-{datetime}.md`
 
 **Per-issue additions** (beyond standard report template):
 - Fix Status: verified / best-effort / reverted / deferred

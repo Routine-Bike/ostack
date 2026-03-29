@@ -183,3 +183,79 @@ After all questions are answered, summarize:
 > **Moving to architecture conversation. After that, everything provisions automatically.**
 
 Proceed to Phase 2.
+
+---
+
+## Phase 2: Architecture Conversation
+
+Now that project basics are collected, have the architecture conversation.
+
+### Step 1: Load the route module
+
+Based on the project type from Phase 1, read the corresponding route file:
+
+```bash
+# Read the route module for the chosen project type
+# The route file is in the same directory as this skill
+```
+
+Read the appropriate file:
+- `saas` → Read `startup/routes/saas.md`
+- `landing` → Read `startup/routes/landing.md`
+- `ai` → Read `startup/routes/ai.md`
+- `internal-tool` → Read `startup/routes/internal-tool.md`
+- `api` → Read `startup/routes/api.md`
+- `cli` → Read `startup/routes/cli.md`
+
+The route module lists the architecture topics and recommendations. Walk through each topic one at a time.
+
+**Important behavior for each topic:**
+1. State your recommendation and WHY (architecture advisory mode — be the best software architect)
+2. Present 1-2 alternatives with concrete trade-offs
+3. Ask the user via AskUserQuestion
+4. Wait for sign-off
+5. Record the decision (what was chosen, what was rejected, why)
+
+**Durable choices principle:** Recommend technologies and patterns that:
+- Have been stable for 3+ years or are clearly the emerging standard
+- Have active maintenance and large communities
+- Don't lock the user into a specific vendor (except GCP, which is the chosen platform)
+- Can scale from prototype to production without rewrites
+
+### Step 2: Service Discovery Scan
+
+After all architecture topics are covered, read the service discovery module:
+
+Read `startup/discovery/service-suggestions.md`
+
+Based on the architecture decisions made, present a smart list of services the user might have forgotten. Ask via AskUserQuestion:
+
+> Based on what we discussed, you might also need these services. Want to add any?
+>
+> [list from service-suggestions.md, filtered to what's relevant]
+
+Any service the user adds will get:
+- Its GCP API enabled (if applicable)
+- A section in project.json
+- An entry in .env
+
+### Step 3: Architecture Sign-Off
+
+Summarize all architecture decisions:
+
+> **Architecture decisions:**
+>
+> | Topic | Decision | Rationale |
+> |-------|----------|-----------|
+> | Language | TypeScript | User's default for web |
+> | Framework | Next.js (App Router) | SSR-first, largest ecosystem |
+> | Database | Cloud SQL Postgres + Drizzle | Relational data, good TypeScript support |
+> | ... | ... | ... |
+>
+> **Additional services:** [any from discovery scan]
+>
+> **Looks good? Once confirmed, everything provisions automatically — no more questions.**
+
+Wait for the user to confirm. If they want to change something, go back to that topic.
+
+After confirmation, proceed to Phase 3 (provisioning).

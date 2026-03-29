@@ -259,3 +259,191 @@ Summarize all architecture decisions:
 Wait for the user to confirm. If they want to change something, go back to that topic.
 
 After confirmation, proceed to Phase 3 (provisioning).
+
+---
+
+## Phase 3: Provisioning
+
+**All provisioning runs automatically.** No per-step confirmations. Errors are collected and reported at the end.
+
+Read each provisioning module and execute the steps. For each module:
+1. Read the module file
+2. Execute each step
+3. Log success or failure
+4. Continue to the next module regardless of failures
+
+### Provisioning Order
+
+Execute in this order (dependencies matter):
+
+1. **GCP Project** — Read `startup/provisioning/gcp-project.md` and execute.
+   Must succeed before anything else. If GCP auth fails, stop here and prompt the user.
+
+2. **GitHub** — Read `startup/provisioning/github.md` and execute.
+   Can run independently of GCP.
+
+3. **Cloud DNS** — Read `startup/provisioning/dns.md` and execute.
+   Requires GCP project. Skip if no domain.
+
+4. **Scaffold Code** — Read `startup/generators/scaffold.md` and generate the working skeleton.
+   Uses architecture decisions from Phase 2. Also read the route module's "Scaffold Spec" section for the project structure.
+
+   After scaffolding:
+   - Read `startup/generators/gitignore.md` and generate `.gitignore`
+   - Install dependencies (bun install, uv sync, cargo build, etc.)
+   - Verify the scaffold builds: run the build command
+   - Verify the health endpoint works locally if possible
+
+5. **Cloud Run** — Read `startup/provisioning/cloud-run.md` and execute.
+   Requires scaffold code (needs Dockerfile). Deploys the skeleton to Cloud Run.
+
+6. **GA4 + Search Console** — Read `startup/provisioning/analytics.md` and execute.
+   Requires GCP project. Search Console requires Cloud DNS (for DNS verification).
+
+7. **PostHog** — Read `startup/provisioning/posthog.md` and execute.
+   Independent of GCP.
+
+8. **Stripe** — Read `startup/provisioning/stripe.md` and execute.
+   Only if paid. Independent of GCP.
+
+9. **Resend** — Read `startup/provisioning/email.md` and execute.
+   Only if email. Requires Cloud DNS (for domain verification records).
+
+10. **Monitoring** — Read `startup/provisioning/monitoring.md` and execute.
+    Requires Cloud Run service to be deployed.
+
+11. **CI/CD** — Read `startup/provisioning/cicd.md` and execute.
+    Requires GitHub repo. Creates workflow files and sets secrets.
+
+### Error Collection
+
+Keep a running log of all provisioning results:
+
+```
+PROVISIONING_LOG:
+  gcp-project: SUCCESS
+  github: SUCCESS
+  dns: SUCCESS
+  scaffold: SUCCESS
+  cloud-run: SUCCESS
+  ga4: FAILED — "Analytics Admin API returned 403"
+  search-console: SKIPPED — "No domain"
+  posthog: SUCCESS
+  stripe: SKIPPED — "Free project"
+  resend: SKIPPED — "No email"
+  monitoring: SUCCESS
+  cicd: SUCCESS
+```
+
+---
+
+## Phase 4: File Generation
+
+After provisioning, generate the project metadata files.
+
+### Step 1: project.json
+
+Read `startup/generators/project-json.md`. Generate `project.json` with all values collected during provisioning (IDs, keys, etc.). Write to the project root.
+
+### Step 2: PROJECT.md
+
+Generate `PROJECT.md` from `project.json` using the format in `startup/generators/project-json.md`. Write to the project root.
+
+### Step 3: .env and .env.example
+
+Generate `.env` with all secrets collected during provisioning. Generate `.env.example` with the same structure but empty values. Write both to the project root.
+
+### Step 4: CLAUDE.md
+
+Read `startup/generators/claude-md.md`. Generate `CLAUDE.md` using all project context. Write to the project root.
+
+If a CLAUDE.md already exists (from a re-run), merge new content — don't overwrite user additions.
+
+### Step 5: ADR
+
+Read `startup/generators/adr.md`. Generate `docs/decisions/001-initial-architecture.md` from all architecture decisions. Create the `docs/decisions/` directory.
+
+### Step 6: README.md
+
+Read `startup/generators/readme.md`. Generate a beautiful README with ASCII art, all sections populated. Write to the project root.
+
+### Step 7: Legal pages (if requested)
+
+If the user requested legal pages:
+- Create `src/app/privacy/page.tsx` (or equivalent) with a TODO placeholder
+- Create `src/app/terms/page.tsx` (or equivalent) with a TODO placeholder
+- Include basic structure and a note: "Replace this with your actual privacy policy / terms of service"
+
+---
+
+## Phase 5: Ship
+
+### Step 1: First commit and push
+
+```bash
+git add -A
+git commit -m "Initial project setup via /startup"
+git push -u origin main
+```
+
+If the repo was already created and pushed in the GitHub provisioning step, this may just be an update push:
+```bash
+git add -A
+git commit -m "Complete project setup via /startup"
+git push
+```
+
+### Step 2: Summary Report
+
+Present the final summary:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ {project-name} is ready
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GitHub:          https://github.com/{org}/{slug}
+GCP Console:     https://console.cloud.google.com/home/dashboard?project={slug}
+Cloud Run:       {cloud-run-url}
+Domain:          https://{domain} {(pending DNS propagation) if applicable}
+
+GA4:             https://analytics.google.com/analytics/web/#/p{property-id}
+Search Console:  https://search.google.com/search-console?resource_id=sc-domain:{domain}
+PostHog:         https://app.posthog.com/project/{posthog-project-id}
+{Stripe:         https://dashboard.stripe.com/test/products/{product-id}}
+{Resend:         https://resend.com/domains}
+
+Local dev:       {dev-command}
+Build:           {build-command}
+Test:            {test-command}
+Deploy:          {deploy-command}
+
+Manual steps remaining:
+  {1. Set nameservers in Namecheap: ns1... ns2... ns3... ns4...}
+  {2. Copy Stripe API keys from dashboard to .env}
+  {3. Any other manual steps from failed provisioning}
+
+{PROVISIONING FAILURES (if any):
+  - {service}: {error} — re-run /startup to retry}
+
+Files created:
+  project.json          — project metadata (committed)
+  PROJECT.md            — human-readable project card (committed)
+  .env                  — secrets (gitignored)
+  .env.example          — template (committed)
+  CLAUDE.md             — AI assistant context (committed)
+  docs/decisions/001-initial-architecture.md — architecture decisions
+  README.md             — project README with ASCII art
+  .gitignore            — stack-tailored
+  {.github/workflows/}  — CI/CD pipelines
+```
+
+Include only relevant lines (skip Stripe if free, skip domain if none, etc.).
+
+### Step 3: Next steps suggestion
+
+> **What's next?**
+>
+> - `/office-hours` — brainstorm features before building
+> - `/design-consultation` — create a design system (colors, typography, spacing)
+> - Start coding — your scaffold is deployed and ready

@@ -195,7 +195,7 @@ The last 10% of completeness that teams used to skip? It costs seconds now. Do t
 
 ## Install
 
-**Requirements:** [Claude Code](https://docs.anthropic.com/en/docs/claude-code) or Codex, [Git](https://git-scm.com/), [Bun](https://bun.sh/) v1.0+, [Node.js](https://nodejs.org/) (Windows only)
+**Requirements:** One supported host ([Claude Code](https://docs.anthropic.com/en/docs/claude-code), [GitHub Copilot CLI](https://docs.github.com/copilot/how-tos/use-copilot-agents/use-copilot-cli), or another SKILL.md-compatible agent), [Git](https://git-scm.com/), [Bun](https://bun.sh/) v1.0+, [Node.js](https://nodejs.org/) (Windows only)
 
 ### Claude Code
 
@@ -215,6 +215,23 @@ cd .claude/skills/ostack && ./setup
 ```
 
 `./setup` prints the short `CLAUDE.md` snippet to add. Use that instead of pasting a long hand-maintained block from the README.
+
+### GitHub Copilot CLI
+
+GitHub Copilot CLI officially supports skills from `.claude/skills` and
+`~/.claude/skills`, so the lowest-friction gstack install reuses the same
+Claude-compatible layout instead of introducing a separate Copilot-only tree.
+
+Install once for your user account:
+
+```bash
+git clone https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
+cd ~/.claude/skills/gstack && ./setup --host copilot
+```
+
+For repo-local installs, vendoring gstack into `.claude/skills/gstack` works with
+Copilot CLI too. Put your guidance in `AGENTS.md` or `.github/copilot-instructions.md`,
+then use `/skills reload` if Copilot is already running.
 
 ### Codex
 
@@ -296,6 +313,8 @@ ostack/
 | Stale install | Run `/ostack-upgrade` or set `auto_upgrade: true` in `~/.ostack/config.yaml` |
 | Windows issues | Node.js required alongside Bun ([bun#4253](https://github.com/oven-sh/bun/issues/4253)). Both `bun` and `node` must be on PATH. |
 | Claude can't see skills | Add an ostack section to your project's `CLAUDE.md` listing the available skills |
+| Copilot CLI doesn't see the skills? | Run `/skills list` or `/skills reload`. If you're using the Claude-compatible install path, rerun: `cd ~/.claude/skills/gstack && ./setup --host copilot`|
+
 
 ## Contributing
 

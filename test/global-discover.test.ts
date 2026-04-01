@@ -129,6 +129,58 @@ describe("ostack-global-discover", () => {
       const json = JSON.parse(result.stdout);
       expect(json.total_sessions).toBeGreaterThanOrEqual(0);
     });
+
+    test("discovers Copilot sessions from workspace.yaml", () => {
+      const tempDir = mkdtempSync(join(tmpdir(), "gstack-global-discover-"));
+      try {
+        const homeDir = join(tempDir, "home");
+        const repoDir = join(homeDir, "repo");
+        mkdirSync(repoDir, { recursive: true });
+
+        const gitInit = spawnSync("git", ["init"], {
+          cwd: repoDir,
+          encoding: "utf-8",
+          timeout: 10000,
+        });
+        expect(gitInit.status).toBe(0);
+
+        const sessionDir = join(
+          homeDir,
+          ".copilot",
+          "session-state",
+          "123e4567-e89b-12d3-a456-426614174000"
+        );
+        mkdirSync(sessionDir, { recursive: true });
+        writeFileSync(
+          join(sessionDir, "workspace.yaml"),
+          `id: 123e4567-e89b-12d3-a456-426614174000\ncwd: ${repoDir}\ngit_root: ${repoDir}\nrepository: local/test\nbranch: main\n`
+        );
+
+        const result = spawnSync(
+          "bun",
+          ["run", scriptPath, "--since", "7d", "--format", "json"],
+          {
+            cwd: tempDir,
+            env: { ...process.env, HOME: homeDir },
+            encoding: "utf-8",
+            timeout: 30000,
+          }
+        );
+
+        expect(result.status).toBe(0);
+        const json = JSON.parse(result.stdout);
+        expect(json.total_sessions).toBe(1);
+        expect(json.total_repos).toBe(1);
+        expect(json.tools.copilot.total_sessions).toBe(1);
+        expect(json.tools.copilot.repos).toBe(1);
+        expect(json.repos[0].paths).toContain(repoDir);
+        expect(json.repos[0].sessions.copilot).toBe(1);
+      } finally {
+        if (existsSync(tempDir)) {
+          rmSync(tempDir, { recursive: true, force: true });
+        }
+      }
+    });
   });
 
   describe("discovery output structure", () => {
@@ -150,6 +202,7 @@ describe("ostack-global-discover", () => {
         expect(repo.paths.length).toBeGreaterThan(0);
         expect(repo.sessions).toHaveProperty("claude_code");
         expect(repo.sessions).toHaveProperty("codex");
+        expect(repo.sessions).toHaveProperty("copilot");
       }
     });
 
@@ -164,7 +217,8 @@ describe("ostack-global-discover", () => {
       // Total sessions should equal sum across tools
       const toolTotal =
         json.tools.claude_code.total_sessions +
-        json.tools.codex.total_sessions;
+        json.tools.codex.total_sessions + 
+        json.tools.copilot.total_sessions;
       expect(json.total_sessions).toBe(toolTotal);
     });
 

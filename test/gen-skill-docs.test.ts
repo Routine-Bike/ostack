@@ -1231,14 +1231,21 @@ describe('setup script validation', () => {
     expect(fnBody).toContain('ln -snf "ostack/$skill_name"');
   });
 
-  test('setup supports --host auto|claude|codex', () => {
+  test('setup supports --host auto|claude|copilot|codex', () => {
     expect(setupContent).toContain('--host');
-    expect(setupContent).toContain('claude|codex|auto');
+    expect(setupContent).toContain('claude|codex|copilot|auto');
   });
 
-  test('auto mode detects claude and codex binaries', () => {
+  test('auto mode detects claude, copilot and codex binaries', () => {
     expect(setupContent).toContain('command -v claude');
+    expect(setupContent).toContain('command -v copilot');
     expect(setupContent).toContain('command -v codex');
+  });
+
+  test('Copilot setup reuses the Claude-compatible .claude/skills layout', () => {
+    expect(setupContent).toContain('INSTALL_COPILOT=');
+    expect(setupContent).toContain('GitHub Copilot CLI officially supports .claude/skills');
+    expect(setupContent).toContain('install_claude_like "copilot"');
   });
 
   // T1: Sidecar skip guard — prevents .agents/skills/ostack from being linked as a skill

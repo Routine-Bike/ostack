@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * ostack-global-discover — Discover AI coding sessions across Claude Code and Codex CLI.
+ * ostack-global-discover — Discover AI coding sessions across Claude Code, Codex CLI and Copilot.
  * Resolves each session's working directory to a git repo, deduplicates by normalized remote URL,
  * and outputs structured JSON to stdout.
  *
@@ -17,7 +17,7 @@ import { homedir } from "os";
 // ── Types ──────────────────────────────────────────────────────────────────
 
 interface Session {
-  tool: "claude_code" | "codex";
+  tool: "claude_code" | "codex" | "copilot";
   cwd: string;
 }
 
@@ -25,7 +25,7 @@ interface Repo {
   name: string;
   remote: string;
   paths: string[];
-  sessions: { claude_code: number; codex: number };
+  sessions: { claude_code: number; codex: number ; copilot: number};
 }
 
 interface DiscoveryResult {
@@ -35,6 +35,7 @@ interface DiscoveryResult {
   tools: {
     claude_code: { total_sessions: number; repos: number };
     codex: { total_sessions: number; repos: number };
+    copilot: { total_sessions: number; repos: number };
   };
   total_sessions: number;
   total_repos: number;
@@ -289,6 +290,42 @@ function extractCwdFromJsonl(filePath: string): string | null {
   return null;
 }
 
+function extractCopilotCwdFromWorkspace(filePath: string): string | null {
+  try {
+    const text = readFileSync(filePath, { encoding: "utf-8" });
+    const match = text.match(/^cwd:\s*(.+)$/m);
+    if (!match) return null;
+    return match[1].trim().replace(/^['"]|['"]$/g, "");
+  } catch {
+    return null;
+  }
+}
+
+function extractCopilotCwdFromEvents(filePath: string): string | null {
+  try {
+    const fd = openSync(filePath, "r");
+    const buf = Buffer.alloc(16384);
+    const bytesRead = readSync(fd, buf, 0, 16384, 0);
+    closeSync(fd);
+    const lines = buf.toString("utf-8", 0, bytesRead).split("\n").slice(0, 25);
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      try {
+        const obj = JSON.parse(line);
+        const cwd = obj.data?.context?.cwd;
+        if (obj.type === "session.start" && typeof cwd === "string") {
+          return cwd;
+        }
+      } catch {
+        continue;
+      }
+    }
+  } catch {
+    // File read error
+  }
+  return null;
+}
+
 function scanCodex(since: Date): Session[] {
   const sessionsDir = join(homedir(), ".codex", "sessions");
   if (!existsSync(sessionsDir)) return [];
@@ -351,6 +388,59 @@ function scanCodex(since: Date): Session[] {
   return sessions;
 }
 
+unction scanCopilot(since: Date): Session[] {
+  const sessionsDir = join(homedir(), ".copilot", "session-state");
+  if (!existsSync(sessionsDir)) return [];
+
+  const sessions: Session[] = [];
+
+  let dirs: string[];
+  try {
+    dirs = readdirSync(sessionsDir);
+  } catch {
+    return [];
+  }
+
+  for (const dirName of dirs) {
+    const dirPath = join(sessionsDir, dirName);
+    try {
+      const stat = statSync(dirPath);
+      if (!stat.isDirectory()) continue;
+    } catch {
+      continue;
+    }
+
+    const workspacePath = join(dirPath, "workspace.yaml");
+    const eventsPath = join(dirPath, "events.jsonl");
+
+    const hasRecentWorkspace = existsSync(workspacePath) && (() => {
+      try {
+        return statSync(workspacePath).mtime >= since;
+      } catch {
+        return false;
+      }
+    })();
+    const hasRecentEvents = existsSync(eventsPath) && (() => {
+      try {
+        return statSync(eventsPath).mtime >= since;
+      } catch {
+        return false;
+      }
+    })();
+    if (!hasRecentWorkspace && !hasRecentEvents) continue;
+
+    let cwd = hasRecentWorkspace ? extractCopilotCwdFromWorkspace(workspacePath) : null;
+    if ((!cwd || !existsSync(cwd)) && hasRecentEvents) {
+      cwd = extractCopilotCwdFromEvents(eventsPath);
+    }
+    if (!cwd || !existsSync(cwd)) continue;
+
+    sessions.push({ tool: "copilot", cwd });
+  }
+
+  return sessions;
+}
+
 // ── Deduplication ──────────────────────────────────────────────────────────
 
 async function resolveAndDeduplicate(sessions: Session[]): Promise<Repo[]> {
@@ -407,7 +497,7 @@ async function resolveAndDeduplicate(sessions: Session[]): Promise<Repo[]> {
       }
     }
 
-    const sessionCounts = { claude_code: 0, codex: 0 };
+    const sessionCounts = { claude_code: 0, codex: 0 , copilot: 0};
     for (const s of data.sessions) {
       sessionCounts[s.tool]++;
     }
@@ -423,8 +513,8 @@ async function resolveAndDeduplicate(sessions: Session[]): Promise<Repo[]> {
   // Sort by total sessions descending
   repos.sort(
     (a, b) =>
-      b.sessions.claude_code + b.sessions.codex -
-      (a.sessions.claude_code + a.sessions.codex)
+      b.sessions.claude_code + b.sessions.codex + b.sessions.copilot -
+      (a.sessions.claude_code + a.sessions.codex + a.sessions.copilot)
   );
 
   return repos;
@@ -440,11 +530,12 @@ async function main() {
   // Run all scanners
   const ccSessions = scanClaudeCode(sinceDate);
   const codexSessions = scanCodex(sinceDate);
-  const allSessions = [...ccSessions, ...codexSessions];
+  const copilotSessions = scanCopilot(sinceDate);
+  const allSessions = [...ccSessions, ...codexSessions, ...copilotSessions];
 
   // Summary to stderr
   console.error(
-    `Discovered: ${ccSessions.length} CC sessions, ${codexSessions.length} Codex sessions`
+    `Discovered: ${ccSessions.length} CC sessions, ${codexSessions.length} Codex sessions, ${copilotSessions.length} Copilot sessions`
   );
 
   // Deduplicate
@@ -455,6 +546,7 @@ async function main() {
   // Count per-tool repo counts
   const ccRepos = new Set(repos.filter((r) => r.sessions.claude_code > 0).map((r) => r.remote)).size;
   const codexRepos = new Set(repos.filter((r) => r.sessions.codex > 0).map((r) => r.remote)).size;
+  const copilotRepos = new Set(repos.filter((r) => r.sessions.copilot > 0).map((r) => r.remote)).size;
 
   const result: DiscoveryResult = {
     window: since,
@@ -463,6 +555,7 @@ async function main() {
     tools: {
       claude_code: { total_sessions: ccSessions.length, repos: ccRepos },
       codex: { total_sessions: codexSessions.length, repos: codexRepos },
+      copilot: { total_sessions: copilotSessions.length, repos: copilotRepos },
     },
     total_sessions: allSessions.length,
     total_repos: repos.length,
@@ -473,14 +566,15 @@ async function main() {
   } else {
     // Summary format
     console.log(`Window: ${since} (since ${startDate})`);
-    console.log(`Sessions: ${allSessions.length} total (CC: ${ccSessions.length}, Codex: ${codexSessions.length})`);
+    console.log(`Sessions: ${allSessions.length} total (CC: ${ccSessions.length}, Codex: ${codexSessions.length}), Copilot: ${copilotSessions.length}`);
     console.log(`Repos: ${repos.length} unique`);
     console.log("");
     for (const repo of repos) {
-      const total = repo.sessions.claude_code + repo.sessions.codex;
+      const total = repo.sessions.claude_code + repo.sessions.codex + repo.sessions.copilot;
       const tools = [];
       if (repo.sessions.claude_code > 0) tools.push(`CC:${repo.sessions.claude_code}`);
       if (repo.sessions.codex > 0) tools.push(`Codex:${repo.sessions.codex}`);
+      if (repo.sessions.copilot > 0) tools.push(`Copilot:${repo.sessions.copilot}`);
       console.log(`  ${repo.name} (${total} sessions) — ${tools.join(", ")}`);
       console.log(`    Remote: ${repo.remote}`);
       console.log(`    Paths: ${repo.paths.join(", ")}`);

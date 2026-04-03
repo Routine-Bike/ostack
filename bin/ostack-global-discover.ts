@@ -388,7 +388,7 @@ function scanCodex(since: Date): Session[] {
   return sessions;
 }
 
-unction scanCopilot(since: Date): Session[] {
+function scanCopilot(since: Date): Session[] {
   const sessionsDir = join(homedir(), ".copilot", "session-state");
   if (!existsSync(sessionsDir)) return [];
 
